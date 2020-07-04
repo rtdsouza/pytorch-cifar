@@ -1,5 +1,5 @@
 import torch
-
+import torch.nn.functional as F
 class CELoss:
     def __init__(self, y):
         self.y = y

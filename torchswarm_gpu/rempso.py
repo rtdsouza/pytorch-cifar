@@ -9,7 +9,7 @@ device = torch.device(dev)
 class RotatedEMParicleSwarmOptimizer:
     def __init__(self,dimensions = 4, swarm_size=100,classes=1, true_y=None, options=None):
         if (options == None):
-            options = [0.9,0.8,0.1,100]
+            options = [0.8,0.9,0.1,100]
         self.swarm_size = swarm_size
         self.c1 = options[0]
         self.c2 = options[1]

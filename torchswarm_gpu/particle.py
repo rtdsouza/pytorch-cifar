@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torchswarm_gpu.utils.rpso import *
-
+from keras.utils import to_categorical
 if torch.cuda.is_available():  
   dev = "cuda:0" 
 else:  
@@ -77,8 +77,9 @@ class EMParticle(Particle):
 class RotatedEMParticle(Particle):
     def __init__(self, dimensions, beta, c1, c2, classes, true_y):
         super().__init__(dimensions, 0, c1, c2, classes)
-        self.position = true_y + (0.1**0.5)*torch.rand(dimensions, classes).to(device)
-        self.position = torch.clamp(self.position,0,1)
+        # print(to_categorical(true_y.cpu().detach().numpy()))
+        self.position = torch.log(torch.Tensor(to_categorical(true_y.cpu().detach().numpy()))).to(device) + torch.rand(dimensions, classes).to(device)
+        self.pbest_position = self.position
         self.momentum = torch.zeros((dimensions, 1)).to(device)
         self.beta = beta
 
@@ -94,6 +95,12 @@ class RotatedEMParticle(Particle):
                         + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c2, r2) * a_matrix).float().to(device), (gbest_position - self.position).float().to(device))
 
         return ((self.c1*r1).item(), (self.c2*r2).item())
+    def move(self):
+        for i in range(0, self.dimensions):
+            # print("Before Update: ",self.position[i])
+            self.position[i] = self.position[i] + self.velocity[i]
+            # print("After Update: ",self.position[i], self.velocity[i])
+
 
 
 class RotatedEMParticleWithBounds(Particle):

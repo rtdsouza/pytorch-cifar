@@ -60,7 +60,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 
 # Model
 print('==> Building model..')
-net = ResNet50()
+net = ResNet18()
 net = net.to(device)
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
@@ -99,7 +99,7 @@ def train(epoch):
         outputs = net(inputs)
         # print(torch.exp(gbest))
         gbest = torch.clamp(torch.exp(gbest), 0, 1)
-        loss = approx_criterion(outputs, targets, c1r1+c2r2, 5, gbest)
+        loss = approx_criterion(outputs, targets, c1r1+c2r2, 0.9, gbest)
         loss.backward()
         optimizer.step()
         print(loss.item())
