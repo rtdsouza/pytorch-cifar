@@ -78,10 +78,11 @@ class RotatedEMParticle(Particle):
     def __init__(self, dimensions, beta, c1, c2, classes, true_y):
         super().__init__(dimensions, 0, c1, c2, classes)
         # print(to_categorical(true_y.cpu().detach().numpy()))
-        self.position = torch.log(torch.Tensor(to_categorical(true_y.cpu().detach().numpy()))).to(device) + torch.rand(dimensions, classes).to(device)
+        self.position = initialize_position(true_y, dimensions, classes).to(device)
         self.pbest_position = self.position
         self.momentum = torch.zeros((dimensions, 1)).to(device)
         self.beta = beta
+
 
     def update_velocity(self, gbest_position):
         r1 = torch.rand(1)
@@ -128,3 +129,11 @@ class RotatedEMParticleWithBounds(Particle):
             self.position[i] = self.position[i] + self.velocity[i]
             # print("After Update: ",self.position[i], self.velocity[i])
         self.position = torch.clamp(self.position,-50,50)
+        
+
+def initialize_position(true_y, dimensions, classes):
+    const = -4
+    position = torch.tensor([[const]*classes]*dimensions)
+    for i in range(dimensions):
+        position[i][true_y[i]] = 1
+    return position + torch.rand(dimensions, classes)

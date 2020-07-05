@@ -75,9 +75,10 @@ if args.resume:
     best_acc = checkpoint['acc']
     start_epoch = checkpoint['epoch']
 
-criterion = nn.CrossEntropyLoss()
+criterion = nn.L1Loss()
 optimizer = optim.Adam(net.parameters(), lr=args.lr)
-approx_criterion = CELossWithPSO.apply
+approx_criterion = L1LossWithPSO.apply
+sftmx = nn.Softmax(dim=1)
 
 # Training
 def train(epoch):
@@ -92,14 +93,18 @@ def train(epoch):
         targets.requires_grad = False
         print("PSO ran...")
         p = RotatedEMParicleSwarmOptimizer(batch_size, swarm_size, 10, targets)
-        p.optimize(CELoss(targets))
+        p.optimize(L1Loss(targets))
         for i in range(5):
             c1r1, c2r2, gbest = p.run_one_iter(verbosity=False)
         optimizer.zero_grad()
         outputs = net(inputs)
         # print(gbest)
         # gbest = torch.clamp(torch.exp(gbest), 0, 1)
-        loss = approx_criterion(outputs, targets, c1r1+c2r2, 0.4, gbest)
+        outputs_sftmx = sftmx(outputs)
+        outputs_classes = torch.argmax(outputs_sftmx, dim=1)
+        outputs_double = outputs_classes.type(torch.DoubleTensor)
+        targets_double = targets.type(torch.DoubleTensor)
+        loss = approx_criterion(outputs_double, targets_double, c1r1+c2r2, 0.4, gbest)
         loss.backward()
         optimizer.step()
         print(loss.item(), c1r1+c2r2)
