@@ -55,8 +55,8 @@ class ParicleSwarmOptimizer:
                 .format(iteration + 1,self.gbest_value,toc-tic))
             if(iteration+1 == self.max_iterations):
                 print(self.gbest_position)
-            return positions
-            
+        return positions
+
     def run_one_iter(self, verbosity=True):
         tic = time.monotonic()
         #--- Set PBest
