@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torchswarm_gpu.utils.rpso import *
-from keras.utils import to_categorical
+from tensorflow.keras.utils import to_categorical
 if torch.cuda.is_available():  
   dev = "cuda:0" 
 else:  

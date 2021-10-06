@@ -1,6 +1,6 @@
 import torch 
 import time
-from torchswarm.particle import Particle
+from torchswarm_gpu.particle import Particle
 
 class ParicleSwarmOptimizer:
     def __init__(self,dimensions = 4, swarm_size=100,classes=1, options=None):
@@ -23,6 +23,7 @@ class ParicleSwarmOptimizer:
 
     def run(self,verbosity = True):
         #--- Run 
+        positions = []
         for iteration in range(self.max_iterations):
             tic = time.monotonic()
             #--- Set PBest
@@ -39,9 +40,10 @@ class ParicleSwarmOptimizer:
                 if(self.gbest_value > best_fitness_cadidate):
                     self.gbest_value = best_fitness_cadidate
                     self.gbest_position = particle.position.clone()
-
+            positions.append(self.gbest_position.clone().numpy())
             #--- For Each Particle Update Velocity
             for particle in self.swarm:
+                positions.append(particle.position.clone().numpy())
                 particle.update_velocity(self.gbest_position)
                 particle.move()
             # for particle in self.swarm:
@@ -53,7 +55,8 @@ class ParicleSwarmOptimizer:
                 .format(iteration + 1,self.gbest_value,toc-tic))
             if(iteration+1 == self.max_iterations):
                 print(self.gbest_position)
-
+            return positions
+            
     def run_one_iter(self, verbosity=True):
         tic = time.monotonic()
         #--- Set PBest
