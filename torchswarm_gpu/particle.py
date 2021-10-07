@@ -36,11 +36,7 @@ class Particle:
         return ((self.c1*r1).item(), (self.c2*r2).item())
     
     def move(self):
-        for i in range(0, self.dimensions):
-            # print("Before Update: ",self.position[i])
-            self.position[i] = self.position[i] + self.velocity[i]
-            # print("After Update: ",self.position[i], self.velocity[i])
-        self.position = torch.clamp(self.position,0,1)
+        self.position += self.velocity
 
 class RotatedParticle(Particle):
     def update_velocity(self, gbest_position):
