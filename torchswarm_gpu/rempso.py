@@ -28,10 +28,10 @@ class RotatedEMParicleSwarmOptimizer:
 
     def run(self,verbosity = True):
         #--- Run 
+        positions = []
         for iteration in range(self.max_iterations):
             tic = time.monotonic()
             #--- Set PBest
-            positions = []
             for particle in self.swarm:
                 fitness_cadidate = self.fitness_function.evaluate(particle.position)
                 # print("========: ", fitness_cadidate, particle.pbest_value)
