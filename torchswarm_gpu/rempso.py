@@ -31,6 +31,7 @@ class RotatedEMParicleSwarmOptimizer:
         for iteration in range(self.max_iterations):
             tic = time.monotonic()
             #--- Set PBest
+            positions = []
             for particle in self.swarm:
                 fitness_cadidate = self.fitness_function.evaluate(particle.position)
                 # print("========: ", fitness_cadidate, particle.pbest_value)
@@ -46,7 +47,10 @@ class RotatedEMParicleSwarmOptimizer:
                     self.gbest_position = particle.position.clone()
 
             #--- For Each Particle Update Velocity
+            positions.append(self.gbest_position.clone().numpy())
+            #--- For Each Particle Update Velocity
             for particle in self.swarm:
+                positions.append(particle.position.clone().numpy())
                 particle.update_velocity(self.gbest_position)
                 particle.move()
             # for particle in self.swarm:
@@ -58,6 +62,7 @@ class RotatedEMParicleSwarmOptimizer:
                 .format(iteration + 1,self.gbest_value,toc-tic))
             if(iteration+1 == self.max_iterations):
                 print(self.gbest_position)
+        return positions
 
     def run_one_iter(self, verbosity=True):
         tic = time.monotonic()
@@ -138,7 +143,6 @@ class RotatedEMParicleSwarmOptimizerWithBounds:
             # for particle in self.swarm:
             #     print(particle)
             # print(self.gbest_position.numpy())
-            print(self.gbest_value)
             toc = time.monotonic()
             if (verbosity == True):
                 print('Iteration {:.0f} >> global best fitness {:.3f}  | iteration time {:.3f}'
