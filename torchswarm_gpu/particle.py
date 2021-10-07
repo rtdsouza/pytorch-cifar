@@ -11,7 +11,7 @@ device = torch.device(dev)
 class Particle:
     def __init__(self, dimensions, w, c1, c2, classes):
         self.dimensions = dimensions
-        self.position = torch.rand(dimensions, classes).to(device)
+        self.position = torch.randn(dimensions, classes).to(device)
         self.velocity = torch.zeros((dimensions, classes)).to(device)
         self.pbest_position = self.position
         self.pbest_value = torch.Tensor([float("inf")]).to(device)
@@ -74,7 +74,10 @@ class RotatedEMParticle(Particle):
     def __init__(self, dimensions, beta, c1, c2, classes, true_y):
         super().__init__(dimensions, 0, c1, c2, classes)
         # print(to_categorical(true_y.cpu().detach().numpy()))
-        self.position = initialize_position(true_y, dimensions, classes).to(device)
+        if(true_y is not None):
+            self.position = initialize_position(true_y, dimensions, classes).to(device)
+        else:
+            self.position = torch.randn((dimensions,classes)).to(device)
         self.pbest_position = self.position
         self.momentum = torch.zeros((dimensions, 1)).to(device)
         self.beta = beta
@@ -88,8 +91,8 @@ class RotatedEMParticle(Particle):
         a_inverse_matrix = get_inverse_matrix(a_matrix)
         x = a_inverse_matrix * get_phi_matrix(self.dimensions, self.c1, r1) * a_matrix 
         self.velocity = momentum_t \
-                        + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c1, r1) * a_matrix).float().to(device),(self.pbest_position - self.position).float().to(device)) \
-                        + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c2, r2) * a_matrix).float().to(device), (gbest_position - self.position).float().to(device))
+                        + torch.matmul((a_inverse_matrix @ get_phi_matrix(self.dimensions, self.c1, r1) @ a_matrix).float().to(device),(self.pbest_position - self.position).float().to(device)) \
+                        + torch.matmul((a_inverse_matrix @ get_phi_matrix(self.dimensions, self.c2, r2) @ a_matrix).float().to(device), (gbest_position - self.position).float().to(device))
 
         return ((self.c1*r1).item(), (self.c2*r2).item())
     def move(self):
