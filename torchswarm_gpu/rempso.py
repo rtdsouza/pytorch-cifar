@@ -6,7 +6,7 @@ if torch.cuda.is_available():
 else:  
   dev = "cpu"  
 device = torch.device(dev) 
-class RotatedEMParicleSwarmOptimizer:
+class RotatedEMParticleSwarmOptimizer:
     def __init__(self,dimensions = 4, swarm_size=100,classes=1, true_y=None, options=None):
         if (options == None):
             options = [2,2,0.1,100]
