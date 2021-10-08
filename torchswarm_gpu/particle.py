@@ -160,6 +160,7 @@ class HMCParticleWithGradients(Particle):
                 proposed_velocity -= step_size * self.energy.evaluate_grad(self.position)
         proposed_velocity -= 0.5 * step_size * self.energy.evaluate_grad(self.position)
         proposed_velocity *= -1
+        proposed_velocity = proposed_velocity.float()
         return proposed_position, proposed_velocity
 
     def mh_step(self, proposed_position, proposed_velocity):
@@ -170,8 +171,8 @@ class HMCParticleWithGradients(Particle):
             + self.kinetic_energy(self.velocity)
         proposed_energy = self.energy.evaluate(proposed_position) \
             + self.kinetic_energy(proposed_velocity)
-        acceptance_prob = torch.min(1.0, torch.exp(
-            original_energy - proposed_energy))
+        acceptance_prob = min(1.0, torch.exp(
+            original_energy - proposed_energy).item())
         if(torch.rand(1) < acceptance_prob):
             self.position = proposed_position
             self.velocity = proposed_velocity

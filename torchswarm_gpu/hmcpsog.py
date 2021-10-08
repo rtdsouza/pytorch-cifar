@@ -34,6 +34,7 @@ class HMCParticleSwarmOptimizerWithGradients:
             print('Fitness function not specified')
             return
         #--- Run 
+        positions = []
         for iteration in range(self.max_iterations):
             tic = time.monotonic()
             #--- Set PBest
@@ -52,8 +53,10 @@ class HMCParticleSwarmOptimizerWithGradients:
                     self.gbest_particle = particle
 
             #--- For Each Particle Update Velocity
+            positions.append(self.gbest_position.clone())
             for particle in self.swarm:
-                particle.move(self.gbest_particle)
+                positions.append(particle.position.clone())
+                particle.move()
                 
             toc = time.monotonic()
             if (verbosity == True):
@@ -61,3 +64,4 @@ class HMCParticleSwarmOptimizerWithGradients:
                 .format(iteration + 1,self.gbest_value,toc-tic))
             if(iteration+1 == self.max_iterations):
                 print(self.gbest_position)
+        return positions
