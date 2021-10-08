@@ -128,7 +128,64 @@ class RotatedEMParticleWithBounds(Particle):
             self.position[i] = self.position[i] + self.velocity[i]
             # print("After Update: ",self.position[i], self.velocity[i])
         self.position = torch.clamp(self.position,-50,50)
-        
+
+class HMCParticleWithGradients(Particle):
+    def __init__(self, dimensions, c1, c2, classes, mass_matrix, energy_function, energy_grad):
+        super().__init__(dimensions, 1, c1, c2, classes)
+        if(mass_matrix is not None):
+            self.mass_matrix = mass_matrix
+        else:
+            self.mass_matrix = torch.diag(torch.ones(classes))
+        self.M_inv = torch.linalg.inv(self.mass_matrix)
+        self.energy = energy_function
+        self.gbest_particle = None
+        self.energy_grad = energy_grad
+        self.position = torch.randn(classes, 1).to(device)
+        self.velocity = torch.zeros((classes, 1)).to(device)
+
+    def set_fitness_function(self, fitness_function):
+        self.energy = fitness_function
+
+    def kinetic_energy(self, velocity):
+        gbest_velocity = self.gbest_particle.velocity
+        return (velocity-gbest_velocity).transpose(1,0) @ self.M_inv @ (velocity-gbest_velocity)
+
+    def leapfrog(self, gbest_position, L=100, step_size=0.001):
+        M_inv = torch.linalg.inv(self.mass_matrix)
+        proposed_velocity = self.velocity.clone()
+        proposed_position = self.position.clone()
+        proposed_velocity -= 0.5 * step_size * self.energy_grad(self.position)
+        for i in range(L):
+            proposed_position += step_size * M_inv @ self.velocity
+            if(i != L-1):
+                proposed_velocity -= step_size * self.energy_grad(self.position)
+        proposed_velocity -= 0.5 * step_size * self.energy_grad(self.position)
+        proposed_velocity *= -1
+        return proposed_position, proposed_velocity
+
+    def mh_step(self, proposed_position, proposed_velocity):
+        if self.energy is None or self.energy_grad is None:
+            print('Fitness function not specified')
+            return
+        original_energy = self.energy(self.position) \
+            + self.kinetic_energy(self.velocity)
+        proposed_energy = self.energy(proposed_position) \
+            + self.kinetic_energy(proposed_velocity)
+        acceptance_prob = torch.min(1.0, torch.exp(
+            original_energy - proposed_energy))
+        if(torch.rand(1) < acceptance_prob):
+            self.position = proposed_position
+            self.velocity = proposed_velocity
+
+    def move(self, gbest_particle):
+        velocity_distribution = torch.distributions.MultivariateNormal(
+            gbest_particle.velocity,
+            gbest_particle.mass_matrix
+        )
+        self.velocity = velocity_distribution.sample()
+        proposal = self.leapfrog(gbest_particle.position)
+        self.mh_step(*proposal)
+
 
 def initialize_position(true_y, dimensions, classes):
     const = -4
