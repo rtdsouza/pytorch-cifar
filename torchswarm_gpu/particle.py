@@ -143,8 +143,9 @@ class HMCParticleWithGradients(Particle):
         self.position = torch.randn(classes, 1).to(device)
         self.velocity = torch.zeros((classes, 1)).to(device)
 
-    def set_fitness_function(self, fitness_function):
+    def set_fitness_function(self, fitness_function, fitness_function_grad):
         self.energy = fitness_function
+        self.energy_grad = fitness_function_grad
 
     def kinetic_energy(self, velocity):
         gbest_velocity = self.gbest_particle.velocity
