@@ -138,20 +138,19 @@ class HMCParticleWithGradients(Particle):
             self.mass_matrix = torch.diag(torch.ones(classes))
         self.M_inv = torch.linalg.inv(self.mass_matrix)
         self.energy = energy_function
+        self.classes = classes
         self.gbest_particle = None
         self.energy_grad = energy_grad
-        self.position = torch.randn(classes, 1).to(device)
-        self.velocity = torch.zeros((classes, 1)).to(device)
+        self.position = torch.randn(classes).to(device)
 
     def set_fitness_function(self, fitness_function):
         self.energy = fitness_function
 
     def kinetic_energy(self, velocity):
-        gbest_velocity = self.gbest_particle.velocity
-        return (velocity-gbest_velocity).transpose(1,0) @ self.M_inv @ (velocity-gbest_velocity)
+        return velocity @ self.M_inv @ velocity
 
-    def leapfrog(self, gbest_position, L=100, step_size=0.001):
-        M_inv = torch.linalg.inv(self.mass_matrix)
+    def leapfrog(self, L=100, step_size=0.001):
+        M_inv = self.M_inv
         proposed_velocity = self.velocity.clone()
         proposed_position = self.position.clone()
         proposed_velocity -= 0.5 * step_size * self.energy.evaluate_grad(self.position)
@@ -177,13 +176,9 @@ class HMCParticleWithGradients(Particle):
             self.position = proposed_position
             self.velocity = proposed_velocity
 
-    def move(self, gbest_particle):
-        velocity_distribution = torch.distributions.MultivariateNormal(
-            gbest_particle.velocity,
-            gbest_particle.mass_matrix
-        )
-        self.velocity = velocity_distribution.sample()
-        proposal = self.leapfrog(gbest_particle.position)
+    def move(self):
+        self.velocity = torch.randn(self.classes)
+        proposal = self.leapfrog()
         self.mh_step(*proposal)
 
 
