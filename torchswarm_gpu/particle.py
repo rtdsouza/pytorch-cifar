@@ -130,7 +130,7 @@ class RotatedEMParticleWithBounds(Particle):
         self.position = torch.clamp(self.position,-50,50)
 
 class HMCParticleWithGradients(Particle):
-    def __init__(self, dimensions, c1, c2, classes, mass_matrix, energy_function, energy_grad):
+    def __init__(self, dimensions, c1, c2, classes, mass_matrix=None, energy_function=None, energy_grad=None):
         super().__init__(dimensions, 1, c1, c2, classes)
         if(mass_matrix is not None):
             self.mass_matrix = mass_matrix
