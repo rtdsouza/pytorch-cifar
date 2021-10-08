@@ -143,9 +143,8 @@ class HMCParticleWithGradients(Particle):
         self.position = torch.randn(classes, 1).to(device)
         self.velocity = torch.zeros((classes, 1)).to(device)
 
-    def set_fitness_function(self, fitness_function, fitness_function_grad):
+    def set_fitness_function(self, fitness_function):
         self.energy = fitness_function
-        self.energy_grad = fitness_function_grad
 
     def kinetic_energy(self, velocity):
         gbest_velocity = self.gbest_particle.velocity
@@ -155,22 +154,22 @@ class HMCParticleWithGradients(Particle):
         M_inv = torch.linalg.inv(self.mass_matrix)
         proposed_velocity = self.velocity.clone()
         proposed_position = self.position.clone()
-        proposed_velocity -= 0.5 * step_size * self.energy_grad(self.position)
+        proposed_velocity -= 0.5 * step_size * self.energy.evaluate_grad(self.position)
         for i in range(L):
             proposed_position += step_size * M_inv @ self.velocity
             if(i != L-1):
-                proposed_velocity -= step_size * self.energy_grad(self.position)
-        proposed_velocity -= 0.5 * step_size * self.energy_grad(self.position)
+                proposed_velocity -= step_size * self.energy.evaluate_grad(self.position)
+        proposed_velocity -= 0.5 * step_size * self.energy.evaluate_grad(self.position)
         proposed_velocity *= -1
         return proposed_position, proposed_velocity
 
     def mh_step(self, proposed_position, proposed_velocity):
-        if self.energy is None or self.energy_grad is None:
+        if self.energy is None:
             print('Fitness function not specified')
             return
-        original_energy = self.energy(self.position) \
+        original_energy = self.energy.evaluate(self.position) \
             + self.kinetic_energy(self.velocity)
-        proposed_energy = self.energy(proposed_position) \
+        proposed_energy = self.energy.evaluate(proposed_position) \
             + self.kinetic_energy(proposed_velocity)
         acceptance_prob = torch.min(1.0, torch.exp(
             original_energy - proposed_energy))

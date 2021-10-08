@@ -24,10 +24,10 @@ class HMCParticleSwarmOptimizerWithGradients:
             mass_matrix = torch.diag(torch.rand(classes))
             self.swarm.append(HMCParticleWithGradients(dimensions, self.c1, self.c2, classes, mass_matrix))
     
-    def optimize(self, function, function_grad):
+    def optimize(self, function):
         self.fitness_function = function
         for particle in self.swarm:
-            particle.set_fitness_function(function, function_grad)
+            particle.set_fitness_function(function)
 
     def run(self,verbosity = True):
         if self.fitness_function is None:
