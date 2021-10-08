@@ -1,6 +1,6 @@
 import torch 
 import time
-from ..torchswarm_gpu.particle import HMCParticleWithGradients
+from torchswarm_gpu.particle import HMCParticleWithGradients
 if torch.cuda.is_available():  
   dev = "cuda:0" 
 else:  
