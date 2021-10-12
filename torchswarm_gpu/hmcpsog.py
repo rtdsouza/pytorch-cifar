@@ -7,7 +7,7 @@ else:
   dev = "cpu"  
 device = torch.device(dev) 
 class HMCParticleSwarmOptimizerWithGradients:
-    def __init__(self,dimensions = 4, swarm_size=100,classes=1, true_y=None, options=None):
+    def __init__(self,dimensions = 4, swarm_size=100,classes=1, true_y=None, step_size=0.001, num_steps=100, options=None):
         if (options == None):
             options = [2,2,100]
         self.swarm_size = swarm_size
@@ -19,6 +19,8 @@ class HMCParticleSwarmOptimizerWithGradients:
         self.gbest_particle = None
         self.gbest_position = None
         self.gbest_value = torch.Tensor([float("inf")]).to(device)
+        self.step_size = step_size
+        self.num_steps = num_steps
 
         for i in range(swarm_size):
             mass_matrix = torch.diag(torch.rand(classes))
@@ -56,7 +58,7 @@ class HMCParticleSwarmOptimizerWithGradients:
             positions.append(self.gbest_position.clone())
             for particle in self.swarm:
                 positions.append(particle.position.clone())
-                particle.move()
+                particle.move(self.num_steps,self.step_size)
                 
             toc = time.monotonic()
             if (verbosity == True):

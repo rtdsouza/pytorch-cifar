@@ -177,9 +177,9 @@ class HMCParticleWithGradients(Particle):
             self.position = proposed_position
             self.velocity = proposed_velocity
 
-    def move(self):
+    def move(self, num_steps=100, step_size=0.001):
         self.velocity = torch.randn(self.classes)
-        proposal = self.leapfrog()
+        proposal = self.leapfrog(num_steps,step_size)
         self.mh_step(*proposal)
 
 
