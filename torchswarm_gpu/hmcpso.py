@@ -16,7 +16,6 @@ class HMCParticleSwarmOptimizer:
         self.max_iterations = options[2]
         self.swarm = []
         self.true_y = true_y
-        self.gbest_particle = None
         self.gbest_position = None
         self.gbest_value = torch.Tensor([float("inf")]).to(device)
         self.step_size = step_size
@@ -54,8 +53,8 @@ class HMCParticleSwarmOptimizer:
                 if(fitness_candidate < self.gbest_value):
                     self.gbest_position = particle.position.clone()
                     self.gbest_value = fitness_candidate
-                    self.gbest_mass_matrix = self.gbest_particle.mass_matrix
-                    self.gbest_velocity = self.gbest_particle.velocity
+                    self.gbest_mass_matrix = particle.mass_matrix
+                    self.gbest_velocity = particle.velocity
             
             #--- For Each Particle Update Velocity
             positions.append(self.gbest_position.clone())
