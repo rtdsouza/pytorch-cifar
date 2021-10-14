@@ -139,9 +139,11 @@ class HMCParticleWithGradients(Particle):
         self.M_inv = torch.linalg.inv(self.mass_matrix)
         self.energy = energy_function
         self.classes = classes
-        self.gbest_particle = None
         self.energy_grad = energy_grad
         self.position = torch.randn(classes).to(device)
+
+    def evaluate_grad(self):
+        return self.energy.evaluate_grad(self.position)
 
     def set_fitness_function(self, fitness_function):
         self.energy = fitness_function
@@ -153,12 +155,12 @@ class HMCParticleWithGradients(Particle):
         M_inv = self.M_inv
         proposed_velocity = self.velocity.clone()
         proposed_position = self.position.clone()
-        proposed_velocity -= 0.5 * step_size * self.energy.evaluate_grad(self.position)
+        proposed_velocity -= 0.5 * step_size * self.evaluate_grad()
         for i in range(L):
             proposed_position += step_size * M_inv @ self.velocity
             if(i != L-1):
-                proposed_velocity -= step_size * self.energy.evaluate_grad(self.position)
-        proposed_velocity -= 0.5 * step_size * self.energy.evaluate_grad(self.position)
+                proposed_velocity -= step_size * self.evaluate_grad()
+        proposed_velocity -= 0.5 * step_size * self.evaluate_grad()
         proposed_velocity *= -1
         proposed_velocity = proposed_velocity.float()
         return proposed_position, proposed_velocity
@@ -182,6 +184,29 @@ class HMCParticleWithGradients(Particle):
         proposal = self.leapfrog(num_steps,step_size)
         self.mh_step(*proposal)
 
+class HMCParticle(HMCParticleWithGradients):
+    def evaluate_grad(self):
+        gbest_position = self.optimizer.gbest_position
+        return self.c1 * torch.rand(1) \
+                * (self.mass_matrix @ (self.pbest_position - self.position)) \
+                + self.c2 * torch.rand(1) \
+                * (self.mass_matrix @ (gbest_position - self.position))
+
+    def set_ref_to_optimizer(self,optimizer):
+        self.optimizer = optimizer
+
+    def move(self, num_steps=100, step_size=0.001):
+        if not hasattr(self,'optimizer'):
+            print('Please use set_ref_to_optimizer() to pass the optimizer ref to the particle')
+            return
+
+        velocity_distribution = torch.distributions.MultivariateNormal(
+            self.optimizer.gbest_velocity,
+            self.optimizer.gbest_mass_matrix
+        )
+        self.velocity = velocity_distribution.sample()
+        proposal = self.leapfrog(num_steps,step_size)
+        self.mh_step(*proposal)
 
 def initialize_position(true_y, dimensions, classes):
     const = -4
