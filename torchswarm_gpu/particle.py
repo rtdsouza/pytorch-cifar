@@ -141,6 +141,7 @@ class HMCParticleWithGradients(Particle):
         self.classes = classes
         self.energy_grad = energy_grad
         self.position = torch.randn(classes).to(device)
+        self.velocity = torch.randn(classes).to(device)
 
     def evaluate_grad(self):
         return self.energy.evaluate_grad(self.position)
