@@ -54,12 +54,8 @@ class HMCParticleSwarmOptimizer:
                 if(fitness_candidate < self.gbest_value):
                     self.gbest_position = particle.position.clone()
                     self.gbest_value = fitness_candidate
-                    self.gbest_particle = particle
-
-            #--- Update gbest_data
-            self.gbest_position = self.gbest_particle.position
-            self.gbest_mass_matrix = self.gbest_particle.mass_matrix
-            self.gbest_velocity = self.gbest_particle.velocity
+                    self.gbest_mass_matrix = self.gbest_particle.mass_matrix
+                    self.gbest_velocity = self.gbest_particle.velocity
             
             #--- For Each Particle Update Velocity
             positions.append(self.gbest_position.clone())
