@@ -41,7 +41,7 @@ class HMCParticleSwarmOptimizer:
         for iteration in range(self.max_iterations):
             tic = time.monotonic()
             #--- Set PBest
-            if self.gbest_particle is not None:
+            if self.gbest_position is not None:
                 self.gbest_value = self.fitness_function.evaluate(self.gbest_position)
             for particle in self.swarm:
                 fitness_candidate = self.fitness_function.evaluate(particle.position)
