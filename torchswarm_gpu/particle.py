@@ -159,6 +159,11 @@ class HMCParticleWithGradients(Particle):
         proposed_velocity -= 0.5 * step_size * self.evaluate_grad()
         for i in range(L):
             proposed_position += step_size * M_inv @ self.velocity
+            if(hasattr(self,'optimizer')):
+                fitness_candidate = self.energy.evaluate(proposed_position)
+                if(fitness_candidate < self.optimizer.gbest_value):
+                    self.optimizer.gbest_value = fitness_candidate
+                    self.optimizer.gbest_position = proposed_position.clone()
             if(i != L-1):
                 proposed_velocity -= step_size * self.evaluate_grad()
         proposed_velocity -= 0.5 * step_size * self.evaluate_grad()
@@ -188,10 +193,10 @@ class HMCParticleWithGradients(Particle):
 class HMCParticle(HMCParticleWithGradients):
     def evaluate_grad(self):
         gbest_position = self.optimizer.gbest_position
-        return -(self.c1 * torch.rand(1) \
+        return (self.c1 * torch.rand(1) \
                 * (self.mass_matrix @ (self.pbest_position - self.position)) \
                 + self.c2 * torch.rand(1) \
-                * (self.mass_matrix @ (gbest_position - self.position)))
+                * (self.mass_matrix @ (gbest_position - self.position))) / self.eta
 
     def set_ref_to_optimizer(self,optimizer):
         self.optimizer = optimizer
@@ -202,9 +207,10 @@ class HMCParticle(HMCParticleWithGradients):
             return
 
         velocity_distribution = torch.distributions.MultivariateNormal(
-            self.optimizer.gbest_velocity,
+            torch.zeros(self.classes),
             self.optimizer.gbest_mass_matrix
         )
+        self.eta = num_steps * step_size
         self.velocity = velocity_distribution.sample()
         proposal = self.leapfrog(num_steps,step_size)
         self.mh_step(*proposal)

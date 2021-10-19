@@ -43,6 +43,7 @@ class HMCParticleSwarmOptimizer:
             #--- Set PBest
             if self.gbest_position is not None:
                 self.gbest_value = self.fitness_function.evaluate(self.gbest_position)
+            iteration_best = torch.Tensor([float('inf')])
             for particle in self.swarm:
                 fitness_candidate = self.fitness_function.evaluate(particle.position)
                 # print("========: ", fitness_candidate, particle.pbest_value)
@@ -53,6 +54,9 @@ class HMCParticleSwarmOptimizer:
                 if(fitness_candidate < self.gbest_value):
                     self.gbest_position = particle.position.clone()
                     self.gbest_value = fitness_candidate
+                    
+                if(fitness_candidate < iteration_best):
+                    iteration_best = fitness_candidate
                     self.gbest_mass_matrix = particle.mass_matrix
                     self.gbest_velocity = particle.velocity
             
