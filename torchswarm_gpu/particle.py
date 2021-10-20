@@ -207,10 +207,10 @@ class HMCParticle(HMCParticleWithGradients):
             return
 
         velocity_distribution = torch.distributions.MultivariateNormal(
-            torch.zeros(self.classes),
+            self.optimizer.gbest_velocity,
             self.optimizer.gbest_mass_matrix
         )
-        self.eta = num_steps * step_size
+        self.eta = step_size
         self.velocity = velocity_distribution.sample()
         proposal = self.leapfrog(num_steps,step_size)
         self.mh_step(*proposal)
