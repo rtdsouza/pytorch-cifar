@@ -94,7 +94,7 @@ class RotatedEMParticleSwarmOptimizer:
         # print(self.gbest_position.numpy())
         toc = time.monotonic()
         if (verbosity == True):
-            print(' >> global best fitness {:.3f}  | iteration time {:.3f}'
+            print(' >> global best fitness {:.8f}  | iteration time {:.3f}'
             .format(self.gbest_value,toc-tic))
         return (sum(c1r1s)/ self.swarm_size, sum(c2r2s)/ self.swarm_size, self.gbest_position)
 
