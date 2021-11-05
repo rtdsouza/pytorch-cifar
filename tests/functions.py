@@ -46,7 +46,7 @@ class Booth(TestFunction):
     x,y = np.array(x).reshape((2,))
     return np.square(x + 2*y - 7) + np.square (2*x + y - 5)
 
-class Bulkin(TestFunction):
+class Bukin(TestFunction):
   def evaluate(self,x):
     x,y = np.array(x).reshape((2,))
     return 100*np.sqrt(np.abs(y - 0.01*np.square(x))) + 0.01*np.abs(x + 10)
@@ -85,3 +85,29 @@ class Crossintray(TestFunction):
             100 - np.sqrt(np.square(x) + np.square(y))/np.pi
             ) + 1)
             ), 0.1)
+
+class Sqrt(TestFunction):
+  def evaluate(self,x):
+    x = np.array(x).reshape((1,))[0]
+    return np.sqrt(x)
+
+class Mod(TestFunction):
+  def evaluate(self,x):
+    x = np.array(x).reshape((1,))[0]
+    return np.abs(x)
+
+class DiscontinuousSine(TestFunction):
+  def evaluate(self,x):
+    x = np.array(x).reshape((1,))[0]
+    if(x <= 0):
+      return 0
+    else:
+      return np.pow(x,1/3) + np.sin(x)
+
+class DiscontinuousPoly(TestFunction):
+  def evaluate(self,x):
+    x = np.array(x).reshape((1,))[0]
+    if(x <= 0):
+      return np.square(x)
+    else:
+      return x

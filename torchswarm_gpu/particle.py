@@ -130,7 +130,7 @@ class RotatedEMParticleWithBounds(Particle):
         self.position = torch.clamp(self.position,-50,50)
 
 class HMCParticleWithGradients(Particle):
-    def __init__(self, dimensions, c1, c2, classes, mass_matrix=None, energy_function=None, energy_grad=None):
+    def __init__(self, dimensions, c1, c2, classes, mass_matrix=None, energy_function=None, energy_grad=None, beta=0):
         super().__init__(dimensions, 1, c1, c2, classes)
         if(mass_matrix is not None):
             self.mass_matrix = mass_matrix
@@ -142,6 +142,7 @@ class HMCParticleWithGradients(Particle):
         self.energy_grad = energy_grad
         self.position = torch.randn(classes).to(device)
         self.velocity = torch.randn(classes).to(device)
+        self.beta = beta
 
     def evaluate_grad(self):
         return self.energy.evaluate_grad(self.position)
@@ -211,7 +212,9 @@ class HMCParticle(HMCParticleWithGradients):
             self.optimizer.gbest_mass_matrix
         )
         self.eta = step_size
-        self.velocity = velocity_distribution.sample()
+        old_v = self.velocity.clone()
+        new_v = velocity_distribution.sample()
+        self.velocity = self.beta*old_v + (1-self.beta)*new_v
         proposal = self.leapfrog(num_steps,step_size)
         self.mh_step(*proposal)
 
