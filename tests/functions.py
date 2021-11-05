@@ -89,7 +89,7 @@ class Crossintray(TestFunction):
 class Sqrt(TestFunction):
   def evaluate(self,x):
     x = np.array(x).reshape((1,))[0]
-    return np.sqrt(x)
+    return np.sqrt(np.abs(x))
 
 class Mod(TestFunction):
   def evaluate(self,x):
