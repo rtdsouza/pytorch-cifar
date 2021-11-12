@@ -14,6 +14,7 @@ class EMParticleSwarmOptimizer:
         self.swarm = []
         self.gbest_position = None
         self.gbest_value = torch.Tensor([float("inf")])
+        self.gbest_particle = None
 
         for i in range(swarm_size):
             self.swarm.append(Particle(dimensions, self.beta, self.c1, self.c2, classes))
@@ -21,25 +22,29 @@ class EMParticleSwarmOptimizer:
     def optimize(self, function):
         self.fitness_function = function
 
+    def _evaluate_gbest(self):
+        #--- Set PBest
+        for particle in self.swarm:
+            fitness_cadidate = self.fitness_function.evaluate(particle.position)
+            # print("========: ", fitness_cadidate, particle.pbest_value)
+            if(particle.pbest_value > fitness_cadidate):
+                particle.pbest_value = fitness_cadidate
+                particle.pbest_position = particle.position.clone()
+            # print("========: ",particle.pbest_value)
+        #--- Set GBest
+        for particle in self.swarm:
+            best_fitness_cadidate = self.fitness_function.evaluate(particle.position)
+            if(self.gbest_value > best_fitness_cadidate):
+                self.gbest_value = best_fitness_cadidate
+                self.gbest_position = particle.position.clone()
+                self.gbest_particle = particle
+
     def run(self,verbosity = True):
         #--- Run 
         positions = []
         for iteration in range(self.max_iterations):
             tic = time.monotonic()
-            #--- Set PBest
-            for particle in self.swarm:
-                fitness_cadidate = self.fitness_function.evaluate(particle.position)
-                # print("========: ", fitness_cadidate, particle.pbest_value)
-                if(particle.pbest_value > fitness_cadidate):
-                    particle.pbest_value = fitness_cadidate
-                    particle.pbest_position = particle.position.clone()
-                # print("========: ",particle.pbest_value)
-            #--- Set GBest
-            for particle in self.swarm:
-                best_fitness_cadidate = self.fitness_function.evaluate(particle.position)
-                if(self.gbest_value > best_fitness_cadidate):
-                    self.gbest_value = best_fitness_cadidate
-                    self.gbest_position = particle.position.clone()
+            self._evaluate_gbest()
             positions.append(self.gbest_position.clone().numpy())
             #--- For Each Particle Update Velocity
             for particle in self.swarm:
