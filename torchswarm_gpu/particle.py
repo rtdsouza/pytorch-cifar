@@ -141,6 +141,7 @@ class HMCParticleWithGradients(Particle):
         self.classes = classes
         self.energy_grad = energy_grad
         self.position = torch.randn(classes).to(device)
+        self.pbest_position = self.position.clone()
         self.velocity = torch.randn(classes).to(device)
         self.beta = beta
 
@@ -193,7 +194,7 @@ class HMCParticleWithGradients(Particle):
 
 class HMCParticle(HMCParticleWithGradients):
     def evaluate_grad(self):
-        gbest_position = self.optimizer.gbest_position
+        gbest_position = self.optimizer.gbest_position.clone().reshape(self.position.shape)
         return (self.c1 * torch.rand(1) \
                 * (self.mass_matrix @ (self.pbest_position - self.position)) \
                 + self.c2 * torch.rand(1) \

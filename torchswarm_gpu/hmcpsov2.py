@@ -26,11 +26,12 @@ class HMCParticleSwarmOptimizer:
         self.em_swarm = EMParticleSwarmOptimizer(1,self.swarm_size,classes)
         self.em_swarm.max_iterations = 1
         self.gbest_mass_matrix = mass_matrix
+        self._shape = self.hmc_particle.position.shape
     
     def optimize(self, function):
         self.fitness_function = function
-        for particle in self.swarm:
-            particle.set_fitness_function(function)
+        self.em_swarm.optimize(function)
+        self.hmc_particle.set_fitness_function(function)
 
     def run(self,verbosity = True):
         if self.fitness_function is None:
@@ -45,24 +46,24 @@ class HMCParticleSwarmOptimizer:
                 self.gbest_value = self.fitness_function.evaluate(self.gbest_position)
 
             if(self.em_swarm.gbest_position is None):
-                self.em_swarm._evaluate_gbest(verbosity=False)
+                self.em_swarm._evaluate_gbest()
             
             hmc_fitness = self.fitness_function.evaluate(self.hmc_particle.position)
 
             if hmc_fitness >= self.em_swarm.gbest_value:
-                self.gbest_position = self.em_swarm.gbest_position.clone()
+                self.gbest_position = self.em_swarm.gbest_position.clone().reshape(self._shape)
                 self.gbest_particle = self.em_swarm.gbest_particle
             else:
-                self.hmc_particle.position.clone()
+                self.gbest_position = self.hmc_particle.position.clone()
                 self.gbest_particle = self.hmc_particle
 
             positions.append(self.gbest_position.clone())
-            for particle in self.em_swarm:
+            for particle in self.em_swarm.swarm:
                 positions.append(particle.position.clone())
 
+            self.gbest_velocity = self.gbest_particle.velocity.clone().reshape(self._shape)
             self.em_swarm.run(verbosity=False)
             self.hmc_particle.move(self.num_steps,self.step_size)
-            self.gbest_velocity = self.gbest_particle.velocity.clone()
 
             toc = time.monotonic()
             if (verbosity == True):
