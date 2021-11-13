@@ -50,11 +50,18 @@ class HMCParticleSwarmOptimizer:
             
             hmc_fitness = self.fitness_function.evaluate(self.hmc_particle.position)
 
+            self.gbest_value = min(self.gbest_value,
+                                    self.em_swarm.gbest_value,
+                                    hmc_fitness)
             if hmc_fitness >= self.em_swarm.gbest_value:
-                self.gbest_position = self.em_swarm.gbest_position.clone().reshape(self._shape)
+                if(self.em_swarm.gbest_value < self.gbest_value or \
+                    self.gbest_position is None):
+                    self.gbest_position = self.em_swarm.gbest_position.clone().reshape(self._shape)
                 self.gbest_particle = self.em_swarm.gbest_particle
             else:
-                self.gbest_position = self.hmc_particle.position.clone()
+                if(hmc_fitness < self.gbest_value or \
+                    self.gbest_position is None):
+                    self.gbest_position = self.hmc_particle.position.clone()
                 self.gbest_particle = self.hmc_particle
 
             positions.append(self.gbest_position.clone())
