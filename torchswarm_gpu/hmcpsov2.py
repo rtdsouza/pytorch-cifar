@@ -33,12 +33,14 @@ class HMCParticleSwarmOptimizer:
         self.em_swarm.optimize(function)
         self.hmc_particle.set_fitness_function(function)
 
-    def run(self,verbosity = True):
+    def run(self,verbosity = True,return_cr=False,return_positions=True):
         if self.fitness_function is None:
             print('Fitness function not specified')
             return
         #--- Run 
         positions = []
+        c1r1s = []
+        c2r2s = []
         for iteration in range(self.max_iterations):
             tic = time.monotonic()
             #--- Set PBest
@@ -69,13 +71,30 @@ class HMCParticleSwarmOptimizer:
                 positions.append(particle.position.clone())
 
             self.gbest_velocity = self.gbest_particle.velocity.clone().reshape(self._shape)
-            self.em_swarm.run(verbosity=False)
+            c1r1,c2r2 = self.em_swarm.run(verbosity=False)
+            c1r1s.append(c1r1)
+            c2r2s.append(c2r2)
             self.hmc_particle.move(self.num_steps,self.step_size)
 
             toc = time.monotonic()
             if (verbosity == True):
                 print('Iteration {:.0f} >> global best fitness {:.8f}  | iteration time {:.3f}'
                 .format(iteration + 1,self.gbest_value,toc-tic))
-            if(iteration+1 == self.max_iterations):
-                print(self.gbest_position)
-        return positions
+                if(iteration+1 == self.max_iterations):
+                    print(self.gbest_position)
+        if(return_positions):
+            return positions
+        elif(return_cr):
+            return sum(c1r1s)/len(c1r1s),sum(c2r2s)/len(c2r2s)
+
+    def run_one_iter(self,verbosity=True):
+        tic = time.monotonic()
+        old_iterations = self.max_iterations
+        self.max_iterations = 1
+        result = self.run(verbosity=False)
+        self.max_iterations = old_iterations
+        toc = time.monotonic()
+        if (verbosity == True):
+            print(' >> global best fitness {:.8f}  | iteration time {:.3f}'
+            .format(self.gbest_value,toc-tic))
+        return result

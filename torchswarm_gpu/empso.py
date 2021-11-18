@@ -39,17 +39,21 @@ class EMParticleSwarmOptimizer:
                 self.gbest_position = particle.position.clone()
                 self.gbest_particle = particle
 
-    def run(self,verbosity = True):
+    def run(self,verbosity = True,return_cr = False,return_positions=True):
         #--- Run 
         positions = []
         for iteration in range(self.max_iterations):
             tic = time.monotonic()
             self._evaluate_gbest()
             positions.append(self.gbest_position.clone().numpy())
+            c1r1s = []
+            c2r2s = []
             #--- For Each Particle Update Velocity
             for particle in self.swarm:
                 positions.append(particle.position.clone().numpy())
-                particle.update_velocity(self.gbest_position)
+                c1r1,c2r2 = particle.update_velocity(self.gbest_position)
+                c1r1s.append(c1r1)
+                c2r2s.append(c2r2)
                 particle.move()
             # for particle in self.swarm:
             #     print(particle)
@@ -60,4 +64,7 @@ class EMParticleSwarmOptimizer:
                 .format(iteration + 1,self.gbest_value,toc-tic))
             if(iteration+1 == self.max_iterations):
                 print(self.gbest_position)
-        return positions
+        if(return_positions):
+            return positions
+        elif(return_cr):
+            return sum(c1r1s)/len(c1r1s),sum(c2r2s)/len(c2r2s)
