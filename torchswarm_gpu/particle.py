@@ -59,15 +59,11 @@ class EMParticle(Particle):
     def update_velocity(self, gbest_position):
         r1 = torch.rand(1)
         r2 = torch.rand(1)
-        for i in range(0, self.dimensions):
-            # print(self.velocity[i], (self.pbest_position[i]), (gbest_position[i] - self.position[i]))
-            momentum_t = self.beta*self.momentum[i] + (1 - self.beta)*self.velocity[i]
-            self.velocity[i] = momentum_t \
-                                + self.c1 * r1 * (self.pbest_position[i] - self.position[i]) \
-                                + self.c2 * r2 * (gbest_position[i] - self.position[i])
-            self.momentum[i] = momentum_t
-
-            # print(self.velocity[i])
+        momentum_t = self.beta*self.momentum + (1 - self.beta)*self.velocity
+        self.velocity = momentum_t \
+                            + self.c1 * r1 * (self.pbest_position - self.position) \
+                            + self.c2 * r2 * (gbest_position - self.position)
+        self.momentum = momentum_t
         return ((self.c1*r1).item(), (self.c2*r2).item())
 
 class RotatedEMParticle(Particle):

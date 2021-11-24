@@ -1,6 +1,6 @@
 import torch 
 import time
-from torchswarm_gpu.particle import Particle
+from torchswarm_gpu.particle import EMParticle
 
 class EMParticleSwarmOptimizer:
     def __init__(self,dimensions = 4, swarm_size=100,classes=1, options=None):
@@ -17,7 +17,7 @@ class EMParticleSwarmOptimizer:
         self.gbest_particle = None
 
         for i in range(swarm_size):
-            self.swarm.append(Particle(dimensions, self.beta, self.c1, self.c2, classes))
+            self.swarm.append(EMParticle(dimensions, self.beta, self.c1, self.c2, classes))
     
     def optimize(self, function):
         self.fitness_function = function
@@ -45,9 +45,9 @@ class EMParticleSwarmOptimizer:
         for iteration in range(self.max_iterations):
             tic = time.monotonic()
             self._evaluate_gbest()
-            positions.append(self.gbest_position.clone().numpy())
             c1r1s = []
             c2r2s = []
+            positions.append(self.gbest_position.clone().numpy())
             #--- For Each Particle Update Velocity
             for particle in self.swarm:
                 positions.append(particle.position.clone().numpy())

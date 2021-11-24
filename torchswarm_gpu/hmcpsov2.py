@@ -11,6 +11,9 @@ class HMCParticleSwarmOptimizer:
     def __init__(self,dimensions = 4, swarm_size=100,classes=1, true_y=None, step_size=0.001, num_steps=100, options=None):
         if (options == None):
             options = [2,2,100]
+        if(swarm_size < 2):
+            raise ValueError('Swarm size includes HMC particle \
+                and cannot be less than 2.')
         self.swarm_size = swarm_size
         self.c1 = options[0]
         self.c2 = options[1]
@@ -52,26 +55,29 @@ class HMCParticleSwarmOptimizer:
             
             hmc_fitness = self.fitness_function.evaluate(self.hmc_particle.position)
 
-            self.gbest_value = min(self.gbest_value,
-                                    self.em_swarm.gbest_value,
-                                    hmc_fitness)
             if hmc_fitness >= self.em_swarm.gbest_value:
                 if(self.em_swarm.gbest_value < self.gbest_value or \
                     self.gbest_position is None):
                     self.gbest_position = self.em_swarm.gbest_position.clone().reshape(self._shape)
+                    self.gbest_value = self.em_swarm.gbest_value
                 self.gbest_particle = self.em_swarm.gbest_particle
             else:
                 if(hmc_fitness < self.gbest_value or \
                     self.gbest_position is None):
-                    self.gbest_position = self.hmc_particle.position.clone()
+                    self.gbest_position = self.hmc_particle.position.clone().reshape(self._shape)
+                    self.gbest_value = hmc_fitness
                 self.gbest_particle = self.hmc_particle
+
+            self.em_swarm.gbest_value = self.gbest_value
+            self.em_swarm.gbest_position = self.gbest_position.clone()
 
             positions.append(self.gbest_position.clone())
             for particle in self.em_swarm.swarm:
-                positions.append(particle.position.clone())
+                positions.append(particle.position.clone().reshape(self._shape))
+            positions.append(self.hmc_particle.position.clone().reshape(self._shape))
 
             self.gbest_velocity = self.gbest_particle.velocity.clone().reshape(self._shape)
-            c1r1,c2r2 = self.em_swarm.run(verbosity=False)
+            c1r1,c2r2 = self.em_swarm.run(verbosity=False,return_cr=True,return_positions=False)
             c1r1s.append(c1r1)
             c2r2s.append(c2r2)
             self.hmc_particle.move(self.num_steps,self.step_size)
