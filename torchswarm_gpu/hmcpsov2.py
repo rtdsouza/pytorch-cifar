@@ -26,7 +26,7 @@ class HMCParticleSwarmOptimizer:
         mass_matrix = torch.diag(torch.rand(classes))
         self.hmc_particle = HMCParticle(dimensions, self.c1, self.c2, classes, mass_matrix)
         self.hmc_particle.set_ref_to_optimizer(self)
-        self.em_swarm = EMParticleSwarmOptimizer(1,self.swarm_size,classes)
+        self.em_swarm = EMParticleSwarmOptimizer(1,self.swarm_size-1,classes)
         self.em_swarm.max_iterations = 1
         self.gbest_mass_matrix = mass_matrix
         self._shape = self.hmc_particle.position.shape
