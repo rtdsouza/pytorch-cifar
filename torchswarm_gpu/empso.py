@@ -62,8 +62,8 @@ class EMParticleSwarmOptimizer:
             if (verbosity == True):
                 print('Iteration {:.0f} >> global best fitness {:.8f}  | iteration time {:.3f}'
                 .format(iteration + 1,self.gbest_value,toc-tic))
-            if(iteration+1 == self.max_iterations):
-                print(self.gbest_position)
+                if(iteration+1 == self.max_iterations):
+                    print(self.gbest_position)
         if(return_positions):
             return positions
         elif(return_cr):

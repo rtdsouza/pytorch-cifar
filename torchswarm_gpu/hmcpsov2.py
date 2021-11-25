@@ -97,10 +97,10 @@ class HMCParticleSwarmOptimizer:
         tic = time.monotonic()
         old_iterations = self.max_iterations
         self.max_iterations = 1
-        result = self.run(verbosity=False)
+        result = self.run(verbosity=False,return_cr=True,return_positions=False)
         self.max_iterations = old_iterations
         toc = time.monotonic()
         if (verbosity == True):
             print(' >> global best fitness {:.8f}  | iteration time {:.3f}'
             .format(self.gbest_value,toc-tic))
-        return result
+        return result + (self.gbest_position,)
