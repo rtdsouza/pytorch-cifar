@@ -131,14 +131,14 @@ class HMCParticleWithGradients(Particle):
         if(mass_matrix is not None):
             self.mass_matrix = mass_matrix
         else:
-            self.mass_matrix = torch.diag(torch.ones(classes))
+            self.mass_matrix = torch.diag(torch.ones(dimensions))
         self.M_inv = torch.linalg.inv(self.mass_matrix)
         self.energy = energy_function
         self.classes = classes
         self.energy_grad = energy_grad
-        self.position = torch.randn(classes).to(device)
+        self.position = torch.randn(dimensions,classes).to(device)
         self.pbest_position = self.position.clone()
-        self.velocity = torch.randn(classes).to(device)
+        self.velocity = torch.randn(dimensions,classes).to(device)
         self.beta = beta
 
     def evaluate_grad(self):
