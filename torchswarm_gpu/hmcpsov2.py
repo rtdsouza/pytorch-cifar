@@ -23,7 +23,7 @@ class HMCParticleSwarmOptimizer:
         self.gbest_value = torch.Tensor([float("inf")]).to(device)
         self.step_size = step_size
         self.num_steps = num_steps
-        mass_matrix = torch.diag(torch.rand(classes))
+        mass_matrix = torch.diag(torch.rand(dimensions))
         self.hmc_particle = HMCParticle(dimensions, self.c1, self.c2, classes, mass_matrix)
         self.hmc_particle.set_ref_to_optimizer(self)
         self.em_swarm = EMParticleSwarmOptimizer(dimensions,self.swarm_size-1,classes)
