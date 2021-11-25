@@ -148,7 +148,7 @@ class HMCParticleWithGradients(Particle):
         self.energy = fitness_function
 
     def kinetic_energy(self, velocity):
-        return velocity @ self.M_inv @ velocity
+        return torch.sum(self.M_inv @ (velocity**2))
 
     def leapfrog(self, L=100, step_size=0.001):
         M_inv = self.M_inv
@@ -206,7 +206,7 @@ class HMCParticle(HMCParticleWithGradients):
 
         velocity_distribution = torch.distributions.MultivariateNormal(
             self.optimizer.gbest_velocity,
-            self.optimizer.gbest_mass_matrix
+            torch.diag(torch.ones(self.classes))
         )
         self.eta = step_size
         old_v = self.velocity.clone()
