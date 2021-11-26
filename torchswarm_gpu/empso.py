@@ -33,9 +33,9 @@ class EMParticleSwarmOptimizer:
             # print("========: ",particle.pbest_value)
         #--- Set GBest
         for particle in self.swarm:
-            best_fitness_cadidate = self.fitness_function.evaluate(particle.position)
-            if(self.gbest_value > best_fitness_cadidate):
-                self.gbest_value = best_fitness_cadidate
+            best_fitness_candidate = self.fitness_function.evaluate(particle.position)
+            if(self.gbest_value > best_fitness_candidate):
+                self.gbest_value = best_fitness_candidate
                 self.gbest_position = particle.position.clone()
                 self.gbest_particle = particle
 

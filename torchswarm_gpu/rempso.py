@@ -60,8 +60,8 @@ class RotatedEMParticleSwarmOptimizer:
             if (verbosity == True):
                 print('Iteration {:.0f} >> global best fitness {:.3f}  | iteration time {:.3f}'
                 .format(iteration + 1,self.gbest_value,toc-tic))
-            if(iteration+1 == self.max_iterations):
-                print(self.gbest_position)
+                if(iteration+1 == self.max_iterations):
+                    print(self.gbest_position)
         return positions
 
     def run_one_iter(self, verbosity=True):

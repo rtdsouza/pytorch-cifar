@@ -22,7 +22,7 @@ class HMCParticleSwarmOptimizer:
         self.num_steps = num_steps
 
         for i in range(swarm_size):
-            mass_matrix = torch.diag(torch.rand(classes))
+            mass_matrix = torch.diag(torch.rand(dimensions))
             particle = HMCParticle(dimensions, self.c1, self.c2, classes, mass_matrix)
             particle.set_ref_to_optimizer(self)
             self.swarm.append(particle)
