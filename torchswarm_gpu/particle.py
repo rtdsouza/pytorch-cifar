@@ -4,6 +4,7 @@ from torchswarm_gpu.utils.rpso import *
 from tensorflow.keras.utils import to_categorical
 if torch.cuda.is_available():  
   dev = "cuda:0" 
+  torch.set_default_tensor_type('torch.cuda.FloatTensor')
 else:  
   dev = "cpu"  
 device = torch.device(dev) 
@@ -11,10 +12,10 @@ device = torch.device(dev)
 class Particle:
     def __init__(self, dimensions, w, c1, c2, classes):
         self.dimensions = dimensions
-        self.position = torch.randn(dimensions, classes).to(device)
-        self.velocity = torch.zeros((dimensions, classes)).to(device)
-        self.pbest_position = self.position
-        self.pbest_value = torch.Tensor([float("inf")]).to(device)
+        self.position = torch.randn(dimensions, classes)
+        self.velocity = torch.zeros((dimensions, classes))
+        self.pbest_position = self.position.clone()
+        self.pbest_value = torch.Tensor([float("inf")])
         self.w = w
         self.c1 = c1
         self.c2 = c2
@@ -46,8 +47,8 @@ class RotatedParticle(Particle):
         a_inverse_matrix = get_inverse_matrix(a_matrix)
         x = a_inverse_matrix * get_phi_matrix(self.dimensions, self.c1, r1) * a_matrix 
         self.velocity = self.w * self.velocity \
-                        + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c1, r1) * a_matrix).float().to(device),(self.pbest_position - self.position).float().to(device)) \
-                        + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c2, r2) * a_matrix).float().to(device), (gbest_position - self.position).float().to(device))
+                        + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c1, r1) * a_matrix).float(),(self.pbest_position - self.position).float()) \
+                        + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c2, r2) * a_matrix).float(), (gbest_position - self.position).float())
         return ((self.c1*r1).item(), (self.c2*r2).item())
 
 class EMParticle(Particle):
@@ -71,11 +72,11 @@ class RotatedEMParticle(Particle):
         super().__init__(dimensions, 0, c1, c2, classes)
         # print(to_categorical(true_y.cpu().detach().numpy()))
         if(true_y is not None):
-            self.position = initialize_position(true_y, dimensions, classes).to(device)
+            self.position = initialize_position(true_y, dimensions, classes)
         else:
-            self.position = torch.randn((dimensions,classes)).to(device)
+            self.position = torch.randn((dimensions,classes))
         self.pbest_position = self.position
-        self.momentum = torch.zeros((dimensions, 1)).to(device)
+        self.momentum = torch.zeros((dimensions, 1))
         self.beta = beta
 
 
@@ -87,8 +88,8 @@ class RotatedEMParticle(Particle):
         a_inverse_matrix = get_inverse_matrix(a_matrix)
         x = a_inverse_matrix * get_phi_matrix(self.dimensions, self.c1, r1) * a_matrix 
         self.velocity = momentum_t \
-                        + torch.matmul((a_inverse_matrix @ get_phi_matrix(self.dimensions, self.c1, r1) @ a_matrix).float().to(device),(self.pbest_position - self.position).float().to(device)) \
-                        + torch.matmul((a_inverse_matrix @ get_phi_matrix(self.dimensions, self.c2, r2) @ a_matrix).float().to(device), (gbest_position - self.position).float().to(device))
+                        + torch.matmul((a_inverse_matrix @ get_phi_matrix(self.dimensions, self.c1, r1) @ a_matrix).float(),(self.pbest_position - self.position).float()) \
+                        + torch.matmul((a_inverse_matrix @ get_phi_matrix(self.dimensions, self.c2, r2) @ a_matrix).float(), (gbest_position - self.position).float())
 
         return ((self.c1*r1).item(), (self.c2*r2).item())
     def move(self):
@@ -114,8 +115,8 @@ class RotatedEMParticleWithBounds(Particle):
         a_inverse_matrix = get_inverse_matrix(a_matrix)
         x = a_inverse_matrix * get_phi_matrix(self.dimensions, self.c1, r1) * a_matrix 
         self.velocity = momentum_t \
-                        + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c1, r1) * a_matrix).float().to(device),(self.pbest_position - self.position).float().to(device)) \
-                        + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c2, r2) * a_matrix).float().to(device), (gbest_position - self.position).float().to(device))
+                        + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c1, r1) * a_matrix).float(),(self.pbest_position - self.position).float()) \
+                        + torch.matmul((a_inverse_matrix * get_phi_matrix(self.dimensions, self.c2, r2) * a_matrix).float(), (gbest_position - self.position).float())
 
         return ((self.c1*r1).item(), (self.c2*r2).item())
     def move(self):
@@ -136,9 +137,9 @@ class HMCParticleWithGradients(Particle):
         self.energy = energy_function
         self.classes = classes
         self.energy_grad = energy_grad
-        self.position = torch.randn(dimensions,classes).to(device)
+        self.position = torch.randn(dimensions,classes)
         self.pbest_position = self.position.clone()
-        self.velocity = torch.randn(dimensions,classes).to(device)
+        self.velocity = torch.randn(dimensions,classes)
         self.beta = beta
 
     def evaluate_grad(self):
@@ -191,9 +192,9 @@ class HMCParticleWithGradients(Particle):
 class HMCParticle(HMCParticleWithGradients):
     def evaluate_grad(self):
         gbest_position = self.optimizer.gbest_position.clone().reshape(self.position.shape)
-        return (self.c1 * torch.rand(1) \
+        return (self.c1 * torch.rand(1,device=device) \
                 * (self.mass_matrix @ (self.pbest_position - self.position)) \
-                + self.c2 * torch.rand(1) \
+                + self.c2 * torch.rand(1,device=device) \
                 * (self.mass_matrix @ (gbest_position - self.position))) / self.eta
 
     def set_ref_to_optimizer(self,optimizer):

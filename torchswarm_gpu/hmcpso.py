@@ -3,6 +3,7 @@ import time
 from torchswarm_gpu.particle import HMCParticle
 if torch.cuda.is_available():  
   dev = "cuda:0" 
+  torch.set_default_tensor_type('torch.cuda.FloatTensor')
 else:  
   dev = "cpu"  
 device = torch.device(dev) 
@@ -17,7 +18,7 @@ class HMCParticleSwarmOptimizer:
         self.swarm = []
         self.true_y = true_y
         self.gbest_position = None
-        self.gbest_value = torch.Tensor([float("inf")]).to(device)
+        self.gbest_value = torch.Tensor([float("inf")])
         self.step_size = step_size
         self.num_steps = num_steps
 

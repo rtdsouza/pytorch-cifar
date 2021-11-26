@@ -1,12 +1,14 @@
 import torch 
 import time
 from torchswarm_gpu.particle import RotatedEMParticle, RotatedEMParticleWithBounds
+from torchswarm_gpu.pso import ParticleSwarmOptimizer
 if torch.cuda.is_available():  
   dev = "cuda:0" 
+  torch.set_default_tensor_type('torch.cuda.FloatTensor')
 else:  
   dev = "cpu"  
 device = torch.device(dev) 
-class RotatedEMParticleSwarmOptimizer:
+class RotatedEMParticleSwarmOptimizer(ParticleSwarmOptimizer):
     def __init__(self,dimensions = 4, swarm_size=100,classes=1, true_y=None, options=None):
         if (options == None):
             options = [2,2,0.1,100]
@@ -18,85 +20,10 @@ class RotatedEMParticleSwarmOptimizer:
         self.swarm = []
         self.true_y = true_y
         self.gbest_position = None
-        self.gbest_value = torch.Tensor([float("inf")]).to(device)
+        self.gbest_value = torch.Tensor([float("inf")])
 
         for i in range(swarm_size):
             self.swarm.append(RotatedEMParticle(dimensions, self.beta, self.c1, self.c2, classes, self.true_y))
-    
-    def optimize(self, function):
-        self.fitness_function = function
-
-    def run(self,verbosity = True):
-        #--- Run 
-        positions = []
-        for iteration in range(self.max_iterations):
-            tic = time.monotonic()
-            #--- Set PBest
-            for particle in self.swarm:
-                fitness_cadidate = self.fitness_function.evaluate(particle.position)
-                # print("========: ", fitness_cadidate, particle.pbest_value)
-                if(particle.pbest_value > fitness_cadidate):
-                    particle.pbest_value = fitness_cadidate
-                    particle.pbest_position = particle.position.clone()
-                # print("========: ",particle.pbest_value)
-            #--- Set GBest
-            for particle in self.swarm:
-                best_fitness_cadidate = self.fitness_function.evaluate(particle.position)
-                if(self.gbest_value > best_fitness_cadidate):
-                    self.gbest_value = best_fitness_cadidate
-                    self.gbest_position = particle.position.clone()
-
-            #--- For Each Particle Update Velocity
-            positions.append(self.gbest_position.clone().numpy())
-            #--- For Each Particle Update Velocity
-            for particle in self.swarm:
-                positions.append(particle.position.clone().numpy())
-                particle.update_velocity(self.gbest_position)
-                particle.move()
-            # for particle in self.swarm:
-            #     print(particle)
-            # print(self.gbest_position.numpy())
-            toc = time.monotonic()
-            if (verbosity == True):
-                print('Iteration {:.0f} >> global best fitness {:.3f}  | iteration time {:.3f}'
-                .format(iteration + 1,self.gbest_value,toc-tic))
-                if(iteration+1 == self.max_iterations):
-                    print(self.gbest_position)
-        return positions
-
-    def run_one_iter(self, verbosity=True):
-        tic = time.monotonic()
-        #--- Set PBest
-        for particle in self.swarm:
-            fitness_cadidate = self.fitness_function.evaluate(particle.position).to(device)
-            # print("========: ", fitness_cadidate, particle.pbest_value)
-            if(particle.pbest_value > fitness_cadidate):
-                particle.pbest_value = fitness_cadidate
-                particle.pbest_position = particle.position.clone()
-            # print("========: ",particle.pbest_value)
-        #--- Set GBest
-        for particle in self.swarm:
-            best_fitness_cadidate = self.fitness_function.evaluate(particle.position).to(device)
-            if(self.gbest_value > best_fitness_cadidate):
-                self.gbest_value = best_fitness_cadidate
-                self.gbest_position = particle.position.clone()
-
-        c1r1s = []
-        c2r2s = []
-        #--- For Each Particle Update Velocity
-        for particle in self.swarm:
-            c1r1, c2r2 = particle.update_velocity(self.gbest_position)
-            particle.move()
-            c1r1s.append(c1r1)
-            c2r2s.append(c2r2)
-        # for particle in self.swarm:
-        #     print(particle)
-        # print(self.gbest_position.numpy())
-        toc = time.monotonic()
-        if (verbosity == True):
-            print(' >> global best fitness {:.8f}  | iteration time {:.3f}'
-            .format(self.gbest_value,toc-tic))
-        return (sum(c1r1s)/ self.swarm_size, sum(c2r2s)/ self.swarm_size, self.gbest_position)
 
 class RotatedEMParicleSwarmOptimizerWithBounds:
     def __init__(self,dimensions = 4, swarm_size=100,classes=1, bounds=None, options=None):

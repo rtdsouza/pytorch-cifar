@@ -30,6 +30,7 @@ class Rosenbrock(TestFunction):
 
 class Beale(TestFunction):
   def evaluate(self,x):
+    x = np.array(x).reshape((2,))
     val = (1.5 - x[0] + x[0]*x[1])**2 + \
           (2.25 - x[0] + x[0]*x[1]**2)**2 + \
           (2.625 - x[0] + x[0]*x[1]**3)**2
@@ -54,7 +55,7 @@ class Bukin(TestFunction):
 class Matyas(TestFunction):
   def evaluate(self,x):
     x,y = np.array(x).reshape((2,))
-    return 0.26*np.sum(np.square(xy), axis=1) - 0.48*x*y
+    return 0.26*np.sum(np.square(x), axis=1) - 0.48*x*y
 
 class Levi(TestFunction):
   def evaluate(self,x):

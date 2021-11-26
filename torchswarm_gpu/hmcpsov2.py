@@ -4,6 +4,7 @@ from torchswarm_gpu.particle import HMCParticle
 from torchswarm_gpu.empso import EMParticleSwarmOptimizer
 if torch.cuda.is_available():  
   dev = "cuda:0" 
+  torch.set_default_tensor_type('torch.cuda.FloatTensor')
 else:  
   dev = "cpu"  
 device = torch.device(dev) 
@@ -20,7 +21,7 @@ class HMCParticleSwarmOptimizer:
         self.max_iterations = options[2]
         self.true_y = true_y
         self.gbest_position = None
-        self.gbest_value = torch.Tensor([float("inf")]).to(device)
+        self.gbest_value = torch.Tensor([float("inf")])
         self.step_size = step_size
         self.num_steps = num_steps
         mass_matrix = torch.diag(torch.rand(dimensions))
