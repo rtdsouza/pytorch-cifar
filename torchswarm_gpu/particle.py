@@ -10,9 +10,12 @@ else:
 device = torch.device(dev) 
 
 class Particle:
-    def __init__(self, dimensions, w, c1, c2, classes):
+    def __init__(self, dimensions, w, c1, c2, classes, true_y=None):
         self.dimensions = dimensions
-        self.position = torch.randn(dimensions, classes)
+        if(true_y is not None):
+            self.position = initialize_position(true_y,dimensions,classes)
+        else:
+            self.position = torch.randn(dimensions, classes)
         self.velocity = torch.zeros((dimensions, classes))
         self.pbest_position = self.position.clone()
         self.pbest_value = torch.Tensor([float("inf")])
@@ -52,8 +55,8 @@ class RotatedParticle(Particle):
         return ((self.c1*r1).item(), (self.c2*r2).item())
 
 class EMParticle(Particle):
-    def __init__(self, dimensions, beta, c1, c2, classes):
-        super().__init__(dimensions, 0, c1, c2, classes)
+    def __init__(self, dimensions, beta, c1, c2, classes, true_y=None):
+        super().__init__(dimensions, 0, c1, c2, classes, true_y)
         self.momentum = torch.zeros((dimensions, 1))
         self.beta = beta
 
@@ -221,4 +224,4 @@ def initialize_position(true_y, dimensions, classes):
     position = torch.tensor([[const]*classes]*dimensions)
     for i in range(dimensions):
         position[i][true_y[i]] = 1
-    return position + torch.rand(dimensions, classes)
+    return position + torch.randn(dimensions, classes)

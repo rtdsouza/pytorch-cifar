@@ -1,7 +1,7 @@
 import torch 
 import time
 from torchswarm_gpu.particle import HMCParticle
-from torchswarm_gpu.rempso import RotatedEMParticleSwarmOptimizer
+from torchswarm_gpu.empso import EMParticleSwarmOptimizer
 if torch.cuda.is_available():  
   dev = "cuda:0" 
   torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -27,7 +27,7 @@ class HMCParticleSwarmOptimizer:
         mass_matrix = torch.diag(torch.rand(dimensions))
         self.hmc_particle = HMCParticle(dimensions, self.c1, self.c2, classes, mass_matrix)
         self.hmc_particle.set_ref_to_optimizer(self)
-        self.em_swarm = RotatedEMParticleSwarmOptimizer(dimensions,self.swarm_size-1,classes,true_y)
+        self.em_swarm = EMParticleSwarmOptimizer(dimensions,self.swarm_size-1,classes,true_y)
         self.em_swarm.max_iterations = 1
         self.gbest_mass_matrix = mass_matrix
         self._shape = self.hmc_particle.position.shape
