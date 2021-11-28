@@ -140,7 +140,6 @@ class HMCParticleWithGradients(Particle):
         self.energy = energy_function
         self.classes = classes
         self.energy_grad = energy_grad
-        self.position = torch.randn(dimensions,classes)
         self.pbest_position = self.position.clone()
         self.velocity = torch.randn(dimensions,classes)
         self.beta = beta
@@ -218,6 +217,37 @@ class HMCParticle(HMCParticleWithGradients):
         self.velocity = self.beta*old_v + (1-self.beta)*new_v
         proposal = self.leapfrog(num_steps,step_size)
         self.mh_step(*proposal)
+
+class NUTSParticle(HMCParticle):
+    def __init__(self, dimensions, c1, c2, classes, mass_matrix=None, energy_function=None, energy_grad=None, beta=0):
+        super().__init__(dimensions, c1, c2, classes, mass_matrix=mass_matrix, energy_function=energy_function, energy_grad=energy_grad, beta=beta)
+    
+    def _get_potential_for_pyro(self,initial_position):
+        def potential(params):
+            return self.energy.evaluate(params['z'])
+        return potential,{'z':initial_position}
+
+    def set_fitness_function(self, fitness_function, use_log=False):
+        import pyro
+        if(use_log):
+            def energy(_in):
+                return torch.log(fitness_function(_in))
+            self.energy = energy
+        else:
+            self.energy = fitness_function
+        potential,init_param = self._get_potential_for_pyro(self.position.clone())
+        self._kernel = pyro.infer.mcmc.NUTS(potential_fn=potential)
+        self.sampler = pyro.infer.mcmc.MCMC(self._kernel,10,10,initial_params=init_param)
+    
+    def move(self):
+        self.sampler.run()
+        samples = self.sampler.get_samples()['z']
+        for position in samples:
+            fitness_candidate = self.energy.evaluate(position)
+            if fitness_candidate < self.pbest_value:
+                self.pbest_position = position.clone()
+                if fitness_candidate < self.optimizer.gbest_value:
+                    self.optimizer.gbest_position = position.clone()
 
 def initialize_position(true_y, dimensions, classes):
     const = -4
