@@ -195,12 +195,14 @@ class HMCParticleWithGradients(Particle):
         self.mh_step(*proposal)
 
 class HMCParticle(HMCParticleWithGradients):
-    def evaluate_grad(self):
+    def evaluate_grad(self, position=None):
+        if(position is None):
+            position = self.position
         gbest_position = self.optimizer.gbest_position.clone().reshape(self.position.shape)
         return (self.c1 * torch.rand(1) \
-                * (self.mass_matrix @ (self.pbest_position - self.position)) \
+                * (self.mass_matrix @ (self.pbest_position - position)) \
                 + self.c2 * torch.rand(1) \
-                * (self.mass_matrix @ (gbest_position - self.position))) / self.eta
+                * (self.mass_matrix @ (gbest_position - position))) / self.eta
 
     def set_ref_to_optimizer(self,optimizer):
         self.optimizer = optimizer
