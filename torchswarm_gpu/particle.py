@@ -144,30 +144,33 @@ class HMCParticleWithGradients(Particle):
         self.velocity = torch.randn(dimensions,classes)
         self.beta = beta
 
-    def evaluate_grad(self):
-        return self.energy.evaluate_grad(self.position)
+    def evaluate_grad(self, position=None):
+        if(position is None):
+            return self.energy.evaluate_grad(self.position)
+        else:
+            return self.energy.evaluate_grad(position)
 
     def set_fitness_function(self, fitness_function):
         self.energy = fitness_function
 
     def kinetic_energy(self, velocity):
-        return torch.sum(self.M_inv @ (velocity**2))
+        return 0.5 * torch.sum(self.M_inv @ (velocity**2))
 
     def leapfrog(self, L=100, step_size=0.001):
         M_inv = self.M_inv
         proposed_velocity = self.velocity.clone()
         proposed_position = self.position.clone()
-        proposed_velocity -= 0.5 * step_size * self.evaluate_grad()
+        proposed_velocity -= 0.5 * step_size * self.evaluate_grad(proposed_position)
         for i in range(L):
-            proposed_position += step_size * M_inv @ self.velocity
+            proposed_position += step_size * M_inv @ proposed_velocity.float()
             if(hasattr(self,'optimizer')):
                 fitness_candidate = self.energy.evaluate(proposed_position)
                 if(fitness_candidate < self.optimizer.gbest_value):
                     self.optimizer.gbest_value = fitness_candidate
                     self.optimizer.gbest_position = proposed_position.clone()
             if(i != L-1):
-                proposed_velocity -= step_size * self.evaluate_grad()
-        proposed_velocity -= 0.5 * step_size * self.evaluate_grad()
+                proposed_velocity -= step_size * self.evaluate_grad(proposed_position)
+        proposed_velocity -= 0.5 * step_size * self.evaluate_grad(proposed_position)
         proposed_velocity *= -1
         proposed_velocity = proposed_velocity.float()
         return proposed_position, proposed_velocity
