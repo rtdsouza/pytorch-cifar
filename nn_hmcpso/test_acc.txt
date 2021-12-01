@@ -1,0 +1,6 @@
+EMPSO		HMC+EMPSO	Random Baseline
+96.52%		97.4%
+98.94%		99.02%		99.38%
+
+CIFAR10
+48.22%		49.17%		54.81
