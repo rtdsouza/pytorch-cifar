@@ -55,7 +55,7 @@ class Bukin(TestFunction):
 class Matyas(TestFunction):
   def evaluate(self,x):
     x,y = np.array(x).reshape((2,))
-    return 0.26*np.sum(np.square(x), axis=1) - 0.48*x*y
+    return 0.26*(x**2+y**2) - 0.48*x*y
 
 class Levi(TestFunction):
   def evaluate(self,x):

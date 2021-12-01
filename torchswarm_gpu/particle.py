@@ -254,6 +254,13 @@ class NUTSParticle(HMCParticle):
                 if fitness_candidate < self.optimizer.gbest_value:
                     self.optimizer.gbest_position = position.clone()
 
+class NoOpParticle(EMParticle):
+    def update_velocity(self, gbest_position):
+        return self.c1*torch.rand(1).item(), self.c2*torch.rand(1).item()
+    def move(self):
+        pass
+
+
 def initialize_position(true_y, dimensions, classes):
     const = -4
     position = torch.tensor([[const]*classes]*dimensions)
