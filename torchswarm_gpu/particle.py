@@ -216,7 +216,7 @@ class HMCParticle(HMCParticleWithGradients):
             self.optimizer.gbest_velocity,
             torch.diag(torch.ones(self.classes))
         )
-        self.eta = step_size
+        self.eta = step_size*num_steps
         old_v = self.velocity.clone()
         new_v = velocity_distribution.sample()
         self.velocity = self.beta*old_v + (1-self.beta)*new_v
