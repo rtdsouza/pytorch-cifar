@@ -1,6 +1,13 @@
 import torch
 import numpy as np
 import random
+
+if torch.cuda.is_available():  
+    dev = "cuda:0" 
+else:  
+    dev = "cpu"
+device = torch.device(dev)
+
 def get_rotation_matrix(dimensions, theta, axis_rotation_factor):
     matrix = np.zeros((dimensions, dimensions))
     cos_theta = np.cos(theta)
@@ -20,13 +27,13 @@ def get_rotation_matrix(dimensions, theta, axis_rotation_factor):
     for i in range(0, len(non_selected)):
         idx = non_selected[i]
         matrix[idx-1][idx-1] = 1
-    return torch.from_numpy(matrix)
+    return torch.from_numpy(matrix).to(device)
 
 def get_phi_matrix(dimensions, c, r):
     matrix = np.zeros((dimensions, dimensions))
     for i in range(dimensions):
         matrix[i][i] = c*r
-    return torch.from_numpy(matrix)
+    return torch.from_numpy(matrix).to(device)
 
 
 def get_inverse_matrix(input):
