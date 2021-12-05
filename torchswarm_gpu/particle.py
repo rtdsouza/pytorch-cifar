@@ -199,7 +199,7 @@ class HMCParticle(HMCParticleWithGradients):
         if(position is None):
             position = self.position
         gbest_position = self.optimizer.gbest_position.clone().reshape(self.position.shape)
-        return -(self.c1 * torch.rand(1) \
+        return (self.c1 * torch.rand(1) \
                 * (self.mass_matrix @ (self.pbest_position - position)) \
                 + self.c2 * torch.rand(1) \
                 * (self.mass_matrix @ (gbest_position - position))) / self.eta
