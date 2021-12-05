@@ -45,7 +45,7 @@ class ParticleSwarmOptimizer:
                 self.gbest_position = particle.position.clone()
                 self.gbest_particle = particle
 
-    def run(self,verbosity = True,return_cr = False,return_positions=True):
+    def run(self,verbosity = True,return_cr = False,return_positions=True,precision=8):
         #--- Run 
         if(dev == "cuda:0"):
             return_positions = False
@@ -70,8 +70,8 @@ class ParticleSwarmOptimizer:
             # print(self.gbest_position.numpy())
             toc = time.monotonic()
             if (verbosity == True):
-                print('Iteration {:.0f} >> global best fitness {:.8f}  | iteration time {:.3f}'
-                .format(iteration + 1,self.gbest_value,toc-tic))
+                print('Iteration {0:.0f} >> global best fitness {1:.{2}f}  | iteration time {3:.3f}'
+                .format(iteration + 1,self.gbest_value,precision,toc-tic))
                 if(iteration+1 == self.max_iterations):
                     print(self.gbest_position)
         if(return_positions):
@@ -79,7 +79,7 @@ class ParticleSwarmOptimizer:
         elif(return_cr):
             return sum(c1r1s)/len(c1r1s),sum(c2r2s)/len(c2r2s)
 
-    def run_one_iter(self,verbosity=True):
+    def run_one_iter(self,verbosity=True,precision=8):
         tic = time.monotonic()
         old_iterations = self.max_iterations
         self.max_iterations = 1
@@ -87,6 +87,6 @@ class ParticleSwarmOptimizer:
         self.max_iterations = old_iterations
         toc = time.monotonic()
         if (verbosity == True):
-            print(' >> global best fitness {:.8f}  | iteration time {:.3f}'
-            .format(self.gbest_value,toc-tic))
+            print(' >> global best fitness {0:.{1}f}  | iteration time {2:.3f}'
+            .format(self.gbest_value,precision,toc-tic))
         return result + (self.gbest_position,)

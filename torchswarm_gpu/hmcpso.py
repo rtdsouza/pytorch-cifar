@@ -33,7 +33,7 @@ class HMCParticleSwarmOptimizer:
         for particle in self.swarm:
             particle.set_fitness_function(function)
 
-    def run(self,verbosity = True):
+    def run(self,verbosity = True,precision=8):
         if self.fitness_function is None:
             print('Fitness function not specified')
             return
@@ -69,8 +69,8 @@ class HMCParticleSwarmOptimizer:
                 
             toc = time.monotonic()
             if (verbosity == True):
-                print('Iteration {:.0f} >> global best fitness {:.8f}  | iteration time {:.3f}'
-                .format(iteration + 1,self.gbest_value,toc-tic))
+                print('Iteration {0:.0f} >> global best fitness {1:.{2}f}  | iteration time {3:.3f}'
+                .format(iteration + 1,self.gbest_value,precision,toc-tic))
             if(iteration+1 == self.max_iterations):
                 print(self.gbest_position)
         return positions
